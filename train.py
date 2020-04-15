@@ -139,6 +139,9 @@ if __name__ == '__main__':
     mean = [0.7238, 0.5716, 0.6779]  # for brca
     std = [0.1120, 0.1459, 0.1089]
 
+    mean = [0.6462, 0.5070, 0.8055]  # for Prostate cancer
+    std = [0.1381, 0.1674, 0.1358]
+
     data_transforms = get_data_transforms()
 
     print('================================Start loading data!')
