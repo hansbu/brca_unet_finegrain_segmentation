@@ -4,6 +4,7 @@ import torch.nn as nn
 import numpy as np
 from utils import *
 
+
 def eval_net(net, no_class, dataset, is_save=False):
     """Evaluation without the densecrf with the dice coefficient"""
     criterion = nn.CrossEntropyLoss()
@@ -27,7 +28,7 @@ def eval_net(net, no_class, dataset, is_save=False):
 
         _, masks_pred = torch.max(masks_pred.data, 1)
 
-        tot += dice_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy())      # tot is a numpy array
-        tot_jac += jaccard_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy())      # tot is a numpy array
+        tot += dice_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), no_class)      # tot is a numpy array
+        tot_jac += jaccard_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), no_class)      # tot is a numpy array
 
     return tot_loss/(i + 1), tot / (i + 1), sum(tot) / len(tot) / (i + 1), tot_jac / (i + 1), sum(tot_jac) / len(tot_jac) / (i + 1)

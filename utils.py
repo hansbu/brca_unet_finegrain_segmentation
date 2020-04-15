@@ -17,6 +17,7 @@ import argparse
 from skimage.color import hed2rgb, rgb2hed
 import multiprocessing as mp
 
+
 def load_imgs_files(data_path = 'data',limit=1000000, isTrain=True):
     train_imgs = []
     val_imgs = []
@@ -137,8 +138,7 @@ def cvt_to_gpu(X):
     else Variable(X)
 
 
-def dice_coeff(preds, targets):
-    no_class = 4
+def dice_coeff(preds, targets, no_class):
     dice = np.zeros(no_class)
     eps = 0.00001
 
@@ -158,9 +158,7 @@ def dice_coeff(preds, targets):
     return dice
 
 
-
-def jaccard_coeff(preds, targets):
-    no_class = 4
+def jaccard_coeff(preds, targets, no_class):
     jaccard = np.zeros(no_class)
     eps = 0.00001
 

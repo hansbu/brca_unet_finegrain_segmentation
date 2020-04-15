@@ -93,8 +93,8 @@ if __name__ == '__main__':
 
         masks_pred = masks_pred.data.cpu().numpy()
         true_masks = true_masks.data.cpu().numpy()
-        tot += dice_coeff(masks_pred, true_masks)               # tot is a numpy array
-        tot_jac += jaccard_coeff(masks_pred, true_masks)        # tot is a numpy array
+        tot += dice_coeff(masks_pred, true_masks, no_class)               # tot is a numpy array
+        tot_jac += jaccard_coeff(masks_pred, true_masks, no_class)        # tot is a numpy array
 
         ind = 0
         for r in [0, 400, 800]:

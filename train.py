@@ -63,8 +63,8 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
             optimizer.step()
 
             _, masks_pred = torch.max(masks_pred.data, 1)
-            train_dice += dice_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy())
-            train_jacc += jaccard_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy())
+            train_dice += dice_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), args.n_classes)
+            train_jacc += jaccard_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), args.n_classes)
 
         print('Train Epoch: {} \t Train_Loss: {:.4f} \t Dice: {} \t Averaged Dice: {:.4f} \t Jacc: {} \t '
               'Averaged Jacc: {:.4f} \t Time: {:.2f} mins'.format(epoch, epoch_loss / (i + 1),
