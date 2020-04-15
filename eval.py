@@ -4,13 +4,12 @@ import torch.nn as nn
 import numpy as np
 from utils import *
 
-def eval_net(net, dataset, is_save=False):
+def eval_net(net, no_class, dataset, is_save=False):
     """Evaluation without the densecrf with the dice coefficient"""
     criterion = nn.CrossEntropyLoss()
     device = torch.device("cuda:0")
 
     net.eval()
-    no_class = net.n_classes
     tot = np.zeros(no_class)
     tot_jac = np.zeros(no_class)
     tot_loss = 0

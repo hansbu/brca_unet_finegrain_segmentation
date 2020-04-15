@@ -76,7 +76,7 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
 
         start = time.time()
         if (epoch + 1) % 2 == 0:  # perform evaluation
-            val_loss, val_dice, averaged_dice, val_jacc, averaged_jacc = eval_net(net, val_loader)
+            val_loss, val_dice, averaged_dice, val_jacc, averaged_jacc = eval_net(net, args.n_classes, val_loader)
             print(
                 'Validation Epoch: {} \t Val_Loss: {:.4f} \t Dice: {} \t Averaged Dice: {:.4f} \t Jacc: {} \t Averaged '
                 'Jacc: {:.4f} \t Time: {:.2f} mins'.format(epoch, val_loss, val_dice, averaged_dice, val_jacc,
@@ -96,7 +96,7 @@ def get_args():
     parser.add_option('--N_limit', default=500000, type=int, help='limit the number of data to be loaded')
     parser.add_option('--num_workers', default=8, type=int, help='number of workers')
     parser.add_option('--APS', default=224, type=int, help='patch size of original input')
-    parser.add_option('-n_classes', default=4, type=int, help='number of classes')
+    parser.add_option('--n_classes', default=4, type=int, help='number of classes')
 
     (options, args) = parser.parse_args()
     return options
