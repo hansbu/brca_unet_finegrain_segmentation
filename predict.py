@@ -21,15 +21,11 @@ from color_comp_predict import *
 
 def get_args():
     parser = OptionParser()
-    parser.add_option('--model', '-m', default='CP544.pth',
-                        metavar='FILE', help="Specify the file in which is stored the model"
-                             " (default : 'MODEL.pth')")
-    parser.add_option('--N_limit', default=500000, type=int,
-                      help='limit the number of data to be loaded')
-    parser.add_option('--num_workers', default=4,
-                      type=int, help='number of workers')
-    parser.add_option('--APS', default=400, type=int,
-                      help='patch size of original input')
+    parser.add_option('--model', '-m', default='CP544.pth', metavar='FILE', help="Specify the file in which is stored "
+                                                                                 "the model (default : 'MODEL.pth')")
+    parser.add_option('--N_limit', default=500000, type=int, help='limit the number of data to be loaded')
+    parser.add_option('--num_workers', default=4, type=int, help='number of workers')
+    parser.add_option('--APS', default=400, type=int, help='patch size of original input')
 
     (options, args) = parser.parse_args()
     return options
@@ -43,13 +39,12 @@ if __name__ == '__main__':
     if not os.path.exists(out_fol_mask): os.mkdir(out_fol_mask)
     if not os.path.exists(out_fol_img): os.mkdir(out_fol_img)
 
-    mean = [0.6462,  0.5070,  0.8055]      # for Prostate cancer
-    std = [0.1381,  0.1674,  0.1358]
+    mean = [0.7238, 0.5716, 0.6779]  # for brca
+    std = [0.1120, 0.1459, 0.1089]
 
     data_transforms = {
         'train': transforms.Compose([           # 2 steps of data augmentation for training
-            transforms.ColorJitter(
-                brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
+            transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)]),
 
@@ -64,7 +59,7 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     device = torch.device("cuda:0")
 
-    no_class = 4
+    no_class = 2
     net = UNet(n_channels=3, n_classes=no_class)
     net = parallelize_model(net)
     net.load_state_dict(torch.load('checkpoints/' + args.model))

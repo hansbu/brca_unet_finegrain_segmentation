@@ -10,7 +10,7 @@ def eval_net(net, dataset, is_save=False):
     device = torch.device("cuda:0")
 
     net.eval()
-    no_class = 4
+    no_class = net.n_classes
     tot = np.zeros(no_class)
     tot_jac = np.zeros(no_class)
     tot_loss = 0
