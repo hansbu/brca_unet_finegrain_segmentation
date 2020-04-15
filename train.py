@@ -19,6 +19,7 @@ from utils import *
 
 
 def train_net(net, train_loader=None, val_loader=None, args=None):
+
     dir_checkpoint = 'checkpoints/'
     if not os.path.exists(dir_checkpoint):
         os.mkdir(dir_checkpoint)
@@ -96,7 +97,7 @@ def get_args():
     parser.add_option('--N_limit', default=500000, type=int, help='limit the number of data to be loaded')
     parser.add_option('--num_workers', default=8, type=int, help='number of workers')
     parser.add_option('--APS', default=224, type=int, help='patch size of original input')
-    parser.add_option('--n_classes', default=4, type=int, help='number of classes')
+    parser.add_option('--n_classes', default=2, type=int, help='number of classes')
 
     (options, args) = parser.parse_args()
     return options
@@ -139,8 +140,8 @@ if __name__ == '__main__':
     mean = [0.7238, 0.5716, 0.6779]  # for brca
     std = [0.1120, 0.1459, 0.1089]
 
-    mean = [0.6462, 0.5070, 0.8055]  # for Prostate cancer
-    std = [0.1381, 0.1674, 0.1358]
+    # mean = [0.6462, 0.5070, 0.8055]  # for Prostate cancer
+    # std = [0.1381, 0.1674, 0.1358]
 
     data_transforms = get_data_transforms()
 

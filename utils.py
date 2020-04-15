@@ -18,16 +18,16 @@ from skimage.color import hed2rgb, rgb2hed
 import multiprocessing as mp
 
 
-def load_imgs_files(data_path = 'data',limit=1000000, isTrain=True):
+def load_imgs_files(data_path='data', limit=1000000, isTrain=True):
     train_imgs = []
     val_imgs = []
 
-    train_img_path = os.path.join(data_path, 'train_jpg_10x')
-    train_mask_path = os.path.join(data_path, 'train_mask_10x')
+    train_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_10X')
+    train_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_10X_mask')
     train_img_fns = [os.path.join(train_img_path, f) for f in os.listdir(train_img_path) if len(f) > 3]
 
-    val_img_path = os.path.join(data_path, 'val_jpg_10x')
-    val_mask_path = os.path.join(data_path, 'val_mask_10x')
+    val_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_10X_val')
+    val_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_10X_mask_val')
     val_img_fns = [os.path.join(val_img_path, f) for f in os.listdir(val_img_path) if len(f) > 3]
 
     random.shuffle(train_img_fns)
@@ -37,12 +37,9 @@ def load_imgs_files(data_path = 'data',limit=1000000, isTrain=True):
     c = 0
     if isTrain:
         for fn in train_img_fns:
-            mask_fn = os.path.join(train_mask_path, fn.split('/')[-1].split('.png')[0] + '.png')
+            mask_fn = os.path.join(train_mask_path, fn.split('/')[-1].split('.png')[0] + '_mask.png')
             img = cv2.imread(fn)
             mask = cv2.imread(mask_fn, 0)
-            mask[mask == 2] = 1
-            mask[mask == 3] = 2
-            mask[mask == 4] = 3
 
             mask = np.expand_dims(mask, axis=2)
             img_merged = np.concatenate((img, mask), axis=2)
@@ -53,12 +50,9 @@ def load_imgs_files(data_path = 'data',limit=1000000, isTrain=True):
 
     c = 0
     for fn in val_img_fns:
-        mask_fn = os.path.join(val_mask_path, fn.split('/')[-1].split('.png')[0] + '.png')
+        mask_fn = os.path.join(val_mask_path, fn.split('/')[-1].split('.png')[0] + '_mask.png')
         img = cv2.imread(fn)
         mask = cv2.imread(mask_fn, 0)
-        mask[mask == 2] = 1
-        mask[mask == 3] = 2
-        mask[mask == 4] = 3
 
         mask = np.expand_dims(mask, axis=2)
         img_merged = np.concatenate((img, mask), axis=2)
@@ -75,11 +69,12 @@ class data_loader(Dataset):
     """
     Dataset to read image and label for training
     """
+
     def __init__(self, imgs, transform=None, APS=224, isTrain=True):
         self.imgs = imgs
         self.transform = transform
         self.APS = APS
-        self.randints = [i for i in range(0, 600 - APS + 1, 10)]
+        self.randints = [i for i in range(0, self.imgs[0].shape[0] - APS + 1, 10)]
         self.len_rand = len(self.randints)
         self.isTrain = isTrain
 
@@ -89,26 +84,19 @@ class data_loader(Dataset):
         y = self.randints[random.randint(0, self.len_rand - 1)]
         data = data[x:x + self.APS, y:y + self.APS, :]
 
-        ### mirror and flip
+        # mirror and flip
         # if np.random.rand(1)[0] < 0.5 and self.isTrain:
         #     data = np.flip(data, 0);        # flip on axis 0, vertiaclly flip
         # if np.random.rand(1)[0] < 0.5 and self.isTrain:
         #     data = np.flip(data, 1);       # flip on axis 1, mirror
 
-
         img, mask = data[:, :, :3], data[:, :, 3]
         img = Image.fromarray(img.astype(np.uint8), 'RGB')
         img = self.transform(img)
 
-        # print(img.shape, mask.shape)
+        mask = torch.from_numpy(np.ascontiguousarray(mask, dtype=np.float32))  # torch.Tensor
 
-        # mask = Image.fromarray(mask.astype(np.uint8), 'L')
-        # print(np.unique(mask))
-        mask = torch.from_numpy(np.ascontiguousarray(mask, dtype=np.float32))       # torch.Tensor
-
-        # print('type of img/mask: ', type(img), type(mask))
-
-        return img, mask      
+        return img, mask
 
     def __len__(self):
         return len(self.imgs)
@@ -135,15 +123,12 @@ def unparallelize_model(model):
 
 def cvt_to_gpu(X):
     return Variable(X.cuda()) if torch.cuda.is_available() \
-    else Variable(X)
+        else Variable(X)
 
 
 def dice_coeff(preds, targets, no_class):
     dice = np.zeros(no_class)
     eps = 0.00001
-
-    # print(np.unique(preds))
-    # print(np.unique(targets))
 
     for c in range(no_class):
         Pr = preds == c
@@ -161,9 +146,6 @@ def dice_coeff(preds, targets, no_class):
 def jaccard_coeff(preds, targets, no_class):
     jaccard = np.zeros(no_class)
     eps = 0.00001
-
-    # print(np.unique(preds))
-    # print(np.unique(targets))
 
     for c in range(no_class):
         Pr = preds == c
