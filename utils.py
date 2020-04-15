@@ -37,16 +37,21 @@ def load_imgs_files(data_path='data', limit=1000000, isTrain=True):
     c = 0
     if isTrain:
         for fn in train_img_fns:
-            mask_fn = os.path.join(train_mask_path, fn.split('/')[-1].split('.png')[0] + '_mask.png')
-            img = cv2.imread(fn)
-            mask = cv2.imread(mask_fn, 0)
+            try:
+                mask_fn = os.path.join(train_mask_path, fn.split('/')[-1].split('.png')[0] + '_mask.png')
+                img = cv2.imread(fn)
+                mask = cv2.imread(mask_fn, 0)
 
-            mask = np.expand_dims(mask, axis=2)
-            img_merged = np.concatenate((img, mask), axis=2)
-            train_imgs.append(img_merged)
-            c += 1
-            if c % 10 == 0: print('Loading training data: {}/{}'.format(c, len(train_img_fns)))
-            if c > limit: break
+                mask = np.expand_dims(mask, axis=2)
+                img_merged = np.concatenate((img, mask), axis=2)
+                train_imgs.append(img_merged)
+                c += 1
+                if c % 10 == 0: print('Loading training data: {}/{}'.format(c, len(train_img_fns)))
+                if c > limit: break
+            except:
+                print('mask: ', mask.shape)
+                print('img: ', img.shape)
+
 
     c = 0
     for fn in val_img_fns:
