@@ -1,15 +1,10 @@
 import sys
-import os
 from optparse import OptionParser
-import numpy as np
-
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 from torch import optim
-import copy
 from torch.utils.data import DataLoader, Dataset
-import pdb
 from torchvision import transforms
 import time
 
@@ -83,13 +78,13 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
                 'Jacc: {:.4f} \t Time: {:.2f} mins'.format(epoch, val_loss, val_dice, averaged_dice, val_jacc,
                                                            averaged_jacc, (time.time() - start) / 60.0))
 
-        if (epoch + 1) % 2 == 0:  # save checkpoint every epoch
-            torch.save(net.state_dict(), dir_checkpoint + 'CP{}.pth'.format(epoch + 1))
+        if (epoch + 1) % 2 == 0:  # save checkpoint frequently
+            torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}.pth'.format(epoch + 1, args.resolution))
 
 
 def get_args():
     parser = OptionParser()
-    parser.add_option('-e', '--epochs', dest='epochs', default=100, type='int', help='number of epochs')
+    parser.add_option('-e', '--epochs', dest='epochs', default=1000, type='int', help='number of epochs')
     parser.add_option('-b', '--batch-size', dest='batchsize', default=32, type='int', help='batch size')
     parser.add_option('-l', '--lr', '--learning-rate', dest='lr', default=0.01, type='float', help='learning rate')
     parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default=True, help='use cuda')
@@ -98,6 +93,7 @@ def get_args():
     parser.add_option('--num_workers', default=8, type=int, help='number of workers')
     parser.add_option('--APS', default=224, type=int, help='patch size of original input')
     parser.add_option('--n_classes', default=2, type=int, help='number of classes')
+    parser.add_option('--resolution', default=10, type=int, help='resolution of training data')
 
     (options, args) = parser.parse_args()
     return options
@@ -140,13 +136,10 @@ if __name__ == '__main__':
     mean = [0.7238, 0.5716, 0.6779]  # for brca
     std = [0.1120, 0.1459, 0.1089]
 
-    # mean = [0.6462, 0.5070, 0.8055]  # for Prostate cancer
-    # std = [0.1381, 0.1674, 0.1358]
-
     data_transforms = get_data_transforms()
 
     print('================================Start loading data!')
-    img_trains, img_vals, _ = load_imgs_files(data_path='data', limit=args.N_limit)
+    img_trains, img_vals, _ = load_imgs_files(data_path='data', limit=args.N_limit, resolution=args.resolution)
     print('================================Done loading data, train/val: ', len(img_trains), len(img_vals))
 
     train_set = data_loader(img_trains, transform=data_transforms['train'], APS=args.APS, isTrain=True)
@@ -165,7 +158,7 @@ if __name__ == '__main__':
         train_net(net=net, train_loader=train_loader, val_loader=val_loader, args=args)
 
     except KeyboardInterrupt:
-        torch.save(net.state_dict(), 'INTERRUPTED.pth')
+        torch.save(net.state_dict(), 'INTERRUPTED_res{}.pth'.format(args.resolution))
         print('Saved interrupt')
         try:
             sys.exit(0)

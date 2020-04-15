@@ -2,32 +2,24 @@ import torch
 import numpy as np
 from torch.utils.data import DataLoader, Dataset
 import PIL.Image as Image
-import torch.optim as optim
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
-import torchvision.models as models
 from torch.autograd import Variable
 import os
-import sys
-import torch.nn as nn
 import cv2
 import random
-import glob
-import argparse
-from skimage.color import hed2rgb, rgb2hed
-import multiprocessing as mp
 
 
-def load_imgs_files(data_path='data', limit=1000000, isTrain=True):
+def load_imgs_files(data_path='data', limit=1000000, isTrain=True, resolution=10):
     train_imgs = []
     val_imgs = []
 
-    train_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_10X')
-    train_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_10X_mask')
+    train_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X'.format(resolution))
+    train_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X_mask'.format(resolution))
     train_img_fns = [os.path.join(train_img_path, f) for f in os.listdir(train_img_path) if len(f) > 3]
 
-    val_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_10X_val')
-    val_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_10X_mask_val')
+    val_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X_val'.format(resolution))
+    val_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X_mask_val'.format(resolution))
     val_img_fns = [os.path.join(val_img_path, f) for f in os.listdir(val_img_path) if len(f) > 3]
 
     random.shuffle(train_img_fns)
@@ -37,21 +29,16 @@ def load_imgs_files(data_path='data', limit=1000000, isTrain=True):
     c = 0
     if isTrain:
         for fn in train_img_fns:
-            try:
-                mask_fn = os.path.join(train_mask_path, fn.split('/')[-1].split('.png')[0] + '_mask.png')
-                img = cv2.imread(fn)
-                mask = cv2.imread(mask_fn, 0)
+            mask_fn = os.path.join(train_mask_path, fn.split('/')[-1].split('.png')[0] + '_mask.png')
+            img = cv2.imread(fn)
+            mask = cv2.imread(mask_fn, 0)
 
-                mask = np.expand_dims(mask, axis=2)
-                img_merged = np.concatenate((img, mask), axis=2)
-                train_imgs.append(img_merged)
-                c += 1
-                if c % 10 == 0: print('Loading training data: {}/{}'.format(c, len(train_img_fns)))
-                if c > limit: break
-            except:
-                print('mask: ', mask.shape)
-                print('img: ', img.shape)
-
+            mask = np.expand_dims(mask, axis=2)
+            img_merged = np.concatenate((img, mask), axis=2)
+            train_imgs.append(img_merged)
+            c += 1
+            if c % 10 == 0: print('Loading training data: {}/{}'.format(c, len(train_img_fns)))
+            if c > limit: break
 
     c = 0
     for fn in val_img_fns:
@@ -90,10 +77,10 @@ class data_loader(Dataset):
         data = data[x:x + self.APS, y:y + self.APS, :]
 
         # mirror and flip
-        # if np.random.rand(1)[0] < 0.5 and self.isTrain:
-        #     data = np.flip(data, 0);        # flip on axis 0, vertiaclly flip
-        # if np.random.rand(1)[0] < 0.5 and self.isTrain:
-        #     data = np.flip(data, 1);       # flip on axis 1, mirror
+        if np.random.rand(1)[0] < 0.5 and self.isTrain:
+            data = np.flip(data, 0);        # flip on axis 0, vertiaclly flip
+        if np.random.rand(1)[0] < 0.5 and self.isTrain:
+            data = np.flip(data, 1);       # flip on axis 1, mirror
 
         img, mask = data[:, :, :3], data[:, :, 3]
         img = Image.fromarray(img.astype(np.uint8), 'RGB')

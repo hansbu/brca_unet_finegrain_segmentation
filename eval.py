@@ -16,7 +16,6 @@ def eval_net(net, no_class, dataset, is_save=False):
     tot_loss = 0
 
     for i, data in enumerate(dataset):
-        if i % 10 == 0: print('Processing {}/{}'.format(i, len(dataset)))
         imgs, true_masks = data
 
         imgs = Variable(imgs.to(device))
