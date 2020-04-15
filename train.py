@@ -24,8 +24,6 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
         os.mkdir(dir_checkpoint)
 
     device = torch.device("cuda:0")
-    no_class = net.n_classes
-
     print('Start Training: ', args)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(args.epochs):
@@ -45,8 +43,8 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
         start = time.time()
 
         epoch_loss = 0
-        train_dice = np.zeros(no_class)
-        train_jacc = np.zeros(no_class)
+        train_dice = np.zeros(args.n_classes)
+        train_jacc = np.zeros(args.n_classes)
 
         for i, data in enumerate(train_loader):
             imgs, true_masks = data
@@ -98,6 +96,7 @@ def get_args():
     parser.add_option('--N_limit', default=500000, type=int, help='limit the number of data to be loaded')
     parser.add_option('--num_workers', default=8, type=int, help='number of workers')
     parser.add_option('--APS', default=224, type=int, help='patch size of original input')
+    parser.add_option('-n_classes', default=4, type=int, help='number of classes')
 
     (options, args) = parser.parse_args()
     return options
@@ -137,7 +136,6 @@ if __name__ == '__main__':
     args = get_args()
     log_codes()
 
-    n_classes = 4
     mean = [0.7238, 0.5716, 0.6779]  # for brca
     std = [0.1120, 0.1459, 0.1089]
 
@@ -153,7 +151,7 @@ if __name__ == '__main__':
     val_set = data_loader(img_vals, transform=data_transforms['val'], APS=args.APS, isTrain=False)
     val_loader = DataLoader(val_set, batch_size=args.batchsize, shuffle=False, num_workers=args.num_workers)
 
-    net = UNet(n_channels=3, n_classes=n_classes)
+    net = UNet(n_channels=3, n_classes=args.n_classes)
 
     if args.gpu:
         net.cuda()
