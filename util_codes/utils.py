@@ -62,9 +62,10 @@ def get_augment(img, APS):
     img_size = img.shape[0]
     for r in range(0, img_size, APS//2):
         for c in range(0, img_size, APS // 2):
-            tmp = img[r:r + APS, c:c + APS, :]
-            out.append(tmp)
-    return []
+            if r + APS < img_size and c + APS < img_size:
+                tmp = img[r:r + APS, c:c + APS, :]
+                out.append(tmp)
+    return out
 
 
 def augment_val(imgs, APS):
