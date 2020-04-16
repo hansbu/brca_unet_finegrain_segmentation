@@ -148,6 +148,7 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_set, batch_size=args.batchsize, shuffle=True, num_workers=args.num_workers)
 
     val_set = data_loader(img_vals, transform=data_transforms['val'], APS=args.APS, isTrain=False)
+    print('Number of validation patches extracted: ', len(val_set))
     val_loader = DataLoader(val_set, batch_size=args.batchsize, shuffle=False, num_workers=args.num_workers)
 
     net = UNet(n_channels=3, n_classes=args.n_classes, bilinear=False)
