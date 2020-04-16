@@ -118,7 +118,10 @@ def log_codes():
         print(c[:-1])
 
 
-def get_data_transforms(mean, std):
+def get_data_transforms():
+
+    mean = [0.7238, 0.5716, 0.6779]  # for brca
+    std = [0.1120, 0.1459, 0.1089]
     out = {
         'train': transforms.Compose([  # 2 steps of data augmentation for training
             transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
@@ -136,10 +139,7 @@ if __name__ == '__main__':
     args = get_args()
     log_codes()
 
-    mean = [0.7238, 0.5716, 0.6779]  # for brca
-    std = [0.1120, 0.1459, 0.1089]
-
-    data_transforms = get_data_transforms(mean, std)
+    data_transforms = get_data_transforms()
 
     print('================================Start loading data!')
     img_trains, img_vals, _ = load_imgs_files(data_path='data', limit=args.N_limit, resolution=args.resolution)
