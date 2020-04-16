@@ -8,13 +8,15 @@ class gen_annot_predict_pair:
         self.annot_fol = annot
         self.predicted_fol = predict
         self.dest_fol = annot.rstrip('/') + '_combined'
+        if not os.path.exists(self.dest_fol):
+            os.mkdir(self.dest_fol)
 
     def combine(self, fn):
         annot_path = os.path.join(self.annot_fol, fn)
         predicted_path = os.path.join(self.predicted_fol, fn)
         combined_path = os.path.join(self.dest_fol, fn)
 
-        print(fn)
+        print("combining...", fn)
 
         annot = cv2.imread(annot_path)
         predicted = cv2.imread(predicted_path)
