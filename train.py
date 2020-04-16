@@ -19,6 +19,7 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
     if not os.path.exists(dir_checkpoint):
         os.mkdir(dir_checkpoint)
 
+    best_dice = 0
     device = torch.device("cuda:0")
     print('Start Training: ', args)
     criterion = nn.CrossEntropyLoss()
@@ -75,11 +76,13 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
             val_loss, val_dice, averaged_dice, val_jacc, averaged_jacc = eval_net(net, args.n_classes, val_loader)
             print(
                 'Validation Epoch: {} \t Val_Loss: {:.4f} \t Dice: {} \t Averaged Dice: {:.4f} \t Jacc: {} \t Averaged '
-                'Jacc: {:.4f} \t Time: {:.2f} mins'.format(epoch, val_loss, val_dice, averaged_dice, val_jacc,
+                'Jacc: {:.4f} \t Time: {:.2f} mins'.format(epoch + 1, val_loss, val_dice, averaged_dice, val_jacc,
                                                            averaged_jacc, (time.time() - start) / 60.0))
 
-        if (epoch + 1) % 2 == 0:  # save checkpoint frequently
-            torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}_upLearned.pth'.format(epoch + 1, args.resolution))
+            if (epoch + 1) > 50 and best_dice < averaged_dice:
+                best_dice = averaged_dice
+                torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}_upLearned_best_{}.pth'.format(
+                                                                epoch + 1, args.resolution, best_dice))
 
 
 def get_args():
