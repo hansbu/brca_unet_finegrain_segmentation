@@ -13,7 +13,7 @@ def eval_net(net, no_class, dataset, is_save=False):
     tot = np.zeros(no_class)
     tot_jac = np.zeros(no_class)
     tot_loss = 0
-    len_data = 1
+    len_data = 0
 
     for i, data in enumerate(dataset):
         imgs, true_masks = data
