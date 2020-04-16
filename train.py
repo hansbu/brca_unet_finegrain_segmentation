@@ -8,9 +8,9 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 import time
 
-from eval import eval_net
+from util_codes import eval_net
 from unet import UNet
-from utils import *
+from util_codes.utils import *
 
 
 def train_net(net, train_loader=None, val_loader=None, args=None):
@@ -119,7 +119,6 @@ def log_codes():
 
 
 def get_data_transforms():
-
     mean = [0.7238, 0.5716, 0.6779]  # for brca
     std = [0.1120, 0.1459, 0.1089]
     out = {

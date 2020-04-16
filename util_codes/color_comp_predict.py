@@ -3,26 +3,12 @@
 import cv2, os, glob
 import numpy as np
 
-# colors = np.array([[245,30,30],
-#                    [45,245,45],
-#                    [170,40,180],
-#                    [220,220,50],
-#                    [255,255,255]])
-
-# colors = np.array([[175, 33, 8],
-#                    [20, 145, 4],
-#                 #    [177, 11, 237],
-#                    [14, 187, 235],
-#                 #    [3, 102, 163],
-#                    [255,255,255]
-#                   ])
-
-colors = np.array([[234, 228, 44], # Yellow
+colors = np.array([[161, 166, 168], # Gray
                    [232, 144, 37],  # Orange
                    [206, 29, 2],  # Red
-                   [161, 166, 168], # Gray
                    [255, 255, 255],
                   ])
+
 
 def color_mask(mask):
     uq = np.unique(mask)
@@ -36,9 +22,9 @@ def color_mask(mask):
        g[mask == u] = colors[u,1]
        b[mask == u] = colors[u,2]
 
-    #newmask = np.concatenate((r,g,b), axis = 1)
     newmask = np.dstack((b,g,r))
     return newmask
+
 
 def colorize(img_path, mask_path):
     img = cv2.imread(img_path)
@@ -47,18 +33,17 @@ def colorize(img_path, mask_path):
     print(img_path, mask_path, np.unique(mask))
     mask = color_mask(mask)
 
-    img = np.add(img*0.4, mask*0.6)
+    img = np.add(img*0.6, mask*0.4)
     img = cv2.convertScaleAbs(img)
     return img
 
 
-def main(imgsrc, msksrc, dst):
-    imglist = sorted(glob.glob(os.path.join(imgsrc, '*.jpg')))
+def color_comp_main(imgsrc, msksrc, dst):
+    imglist = sorted(glob.glob(os.path.join(imgsrc, '*.png')))
     msklist = sorted(glob.glob(os.path.join(msksrc, '*.png')))
     print('imglist: {}'.format(len(imglist)))
     print('msklist: {}'.format(len(msklist)))
 
-    i = 0
     for img, msk in zip(imglist, msklist):
         assert os.path.exists(img)
         assert os.path.exists(msk)
@@ -66,16 +51,4 @@ def main(imgsrc, msksrc, dst):
         img_base = os.path.basename(img)
         dstfile = os.path.join(dst, img_base)
         cv2.imwrite(dstfile, color)
-        print(i, img)
-        i += 1
 
-
-if __name__ == '__main__':
-
-    imgsrc = 'train_jpg_ext'
-    msksrc = 'train_mask_ext'
-    dst = 'colored_train_ext'
-
-    if not os.path.isdir(dst): os.mkdir(dst)
-
-    main(imgsrc, msksrc, dst)

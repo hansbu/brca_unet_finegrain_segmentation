@@ -1,23 +1,15 @@
-import sys
-import os
+
 from optparse import OptionParser
-import numpy as np
 
 import torch
-import torch.backends.cudnn as cudnn
 import torch.nn as nn
-from torch import optim
-import copy
-from torch.utils.data import DataLoader, Dataset
-import pdb
-from torchvision import transforms
-
-from eval import eval_net
-from unet import UNet
-from utils import *
 import cv2
-from color_comp_predict import *
+
+from unet import UNet
+from util_codes.utils import *
+from util_codes import color_comp_main
 from train import get_data_transforms
+from util_codes import main_gen_annot_predict_pair
 
 
 def get_args():
@@ -47,14 +39,16 @@ def load_model(no_class, model_file_name):
 
 if __name__ == '__main__':
     args = get_args()
+    no_class = 2
+    resolution = 10
 
-    out_fol_mask = 'data/predicted_masks/'
-    out_fol_img = 'data/predicted_imgs/'
+    val_fol = 'data/TCGA_BRCA_finegrain_patches_{}X_val'.format(resolution)
+    val_colorized_fol = val_fol.rstrip('/') + '_colorized'
+    out_fol_mask = 'data/predicted_masks_{}X/'.format(resolution)
+    out_fol_img = 'data/predicted_imgs_{}X/'.format(resolution)
     if not os.path.exists(out_fol_mask): os.mkdir(out_fol_mask)
     if not os.path.exists(out_fol_img): os.mkdir(out_fol_img)
 
-    no_class = 2
-    resolution = 10
     data_transforms = get_data_transforms()
 
     print('================================Start loading data!')
@@ -105,6 +99,8 @@ if __name__ == '__main__':
 
         cv2.imwrite(os.path.join(out_fol_mask, val_paths[i]), predicted_mask)
 
-    color_comp_main('data/TCGA_BRCA_finegrain_patches_{}X_val'.format(resolution), out_fol_mask, out_fol_img)
+    color_comp_main(val_fol, out_fol_mask, out_fol_img)
+    main_gen_annot_predict_pair(val_colorized_fol, out_fol_img)
+
     print('Prediction:\t Dice: {} \t Averaged Dice: {:.4f} \t Jacc: {} \t Averaged Jacc: {:.4f}'.format(
                 tot / (i + 1), sum(tot) / len(tot) / (i + 1), tot_jac / (i + 1), sum(tot_jac) / len(tot_jac) / (i + 1)))
