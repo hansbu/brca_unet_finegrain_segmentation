@@ -24,13 +24,13 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
     print('Start Training: ', args)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(args.epochs):
-        if epoch < 40:
+        if epoch < 100:
             lr = args.lr
-        elif epoch < 80:
-            lr = args.lr / 2
-        elif epoch < 100:
-            lr = args.lr / 10
         elif epoch < 150:
+            lr = args.lr / 2
+        elif epoch < 200:
+            lr = args.lr / 10
+        elif epoch < 400:
             lr = args.lr / 50
         else:
             lr = args.lr / 100
@@ -72,7 +72,7 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
                                                                   (time.time() - start) / 60.0))
 
         start = time.time()
-        if (epoch + 1) % 2 == 0:  # perform evaluation
+        if (epoch + 1) % 10 == 0:  # perform evaluation
             val_loss, val_dice, averaged_dice, val_jacc, averaged_jacc = eval_net(net, args.n_classes, val_loader)
             print(
                 'Validation Epoch: {} \t Val_Loss: {:.4f} \t Dice: {} \t Averaged Dice: {:.4f} \t Jacc: {} \t Averaged '
@@ -81,8 +81,8 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
 
             if (epoch + 1) > 50 and best_dice < averaged_dice:
                 best_dice = averaged_dice
-                torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}_upLearned_best_{}.pth'.format(
-                                                                epoch + 1, args.resolution, best_dice))
+                torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}_APS{}_upLearned_best_{}.pth'.format(
+                                                                epoch + 1, args.resolution, args.APS, best_dice))
 
 
 def get_args():
@@ -110,7 +110,7 @@ def log_codes():
     for c in codes:
         print(c[:-1])
 
-    with open('utils.py', 'r') as f:
+    with open('util_codes/utils.py', 'r') as f:
         codes = f.readlines()
 
     print('\n\n' + '=' * 20 + 'utils.py' + '=' * 20)

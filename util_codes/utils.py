@@ -57,6 +57,23 @@ def load_imgs_files(data_path='data', limit=1000000, isTrain=True, resolution=10
     return train_imgs, val_imgs, val_paths
 
 
+def get_augment(img, APS):
+    out = []
+    img_size = img.shape[0]
+    for r in range(0, img_size, APS//2):
+        for c in range(0, img_size, APS // 2):
+            tmp = img[r:r + APS, c:c + APS, :]
+            out.append(tmp)
+    return []
+
+
+def augment_val(imgs, APS):
+    out = []
+    for img in imgs:
+        out.extend(get_augment(img, APS))
+    return out
+
+
 class data_loader(Dataset):
     """
     Dataset to read image and label for training
@@ -69,18 +86,26 @@ class data_loader(Dataset):
         self.randints = [i for i in range(0, self.imgs[0].shape[0] - APS + 1, 10)]
         self.len_rand = len(self.randints)
         self.isTrain = isTrain
+        if not self.isTrain:
+            self.imgs = augment_val(self.imgs, self.APS)
 
     def __getitem__(self, index):
         data = self.imgs[index]
-        x = self.randints[random.randint(0, self.len_rand - 1)]
-        y = self.randints[random.randint(0, self.len_rand - 1)]
-        data = data[x:x + self.APS, y:y + self.APS, :]
+        if self.isTrain:
+            x = self.randints[random.randint(0, self.len_rand - 1)]
+            y = self.randints[random.randint(0, self.len_rand - 1)]
+            data = data[x:x + self.APS, y:y + self.APS, :]
+        else:
+            # this is validation
+            offset = (data.shape[0] - self.APS) // 2
+            data = data[offset:offset + self.APS, offset:offset + self.APS, :]  # get the central patch
 
         # mirror and flip
-        if np.random.rand(1)[0] < 0.5 and self.isTrain:
-            data = np.flip(data, 0);        # flip on axis 0, vertiaclly flip
-        if np.random.rand(1)[0] < 0.5 and self.isTrain:
-            data = np.flip(data, 1);       # flip on axis 1, mirror
+        if self.isTrain:
+            if np.random.rand(1)[0] < 0.5 and self.isTrain:
+                data = np.flip(data, 0);        # flip on axis 0, vertiaclly flip
+            if np.random.rand(1)[0] < 0.5 and self.isTrain:
+                data = np.flip(data, 1);       # flip on axis 1, mirror
 
         img, mask = data[:, :, :3], data[:, :, 3]
         img = Image.fromarray(img.astype(np.uint8), 'RGB')
