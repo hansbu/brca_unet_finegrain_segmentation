@@ -82,8 +82,8 @@ if __name__ == '__main__':
                 tmp = data[r: r + APS, c: c + APS, :]
                 img, true_mask = tmp[:, :, :3], tmp[:, :, 3]
                 img = Image.fromarray(img.astype(np.uint8), 'RGB')
-                imgs[ind] = data_transforms['val'](img)           # 3x400x400
-                true_masks[ind] = torch.from_numpy(true_mask)     # 400x400
+                imgs[ind] = data_transforms['val'](img)           # 3xAPSxAPS
+                true_masks[ind] = torch.from_numpy(true_mask)     # APSxAPS
                 ind += 1
 
         imgs = Variable(imgs.to(device))

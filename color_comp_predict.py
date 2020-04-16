@@ -3,10 +3,9 @@
 import cv2, os, glob
 import numpy as np
 
-colors = np.array([[234, 228, 44], # Yellow
+colors = np.array([[161, 166, 168], # Gray
                    [232, 144, 37],  # Orange
                    [206, 29, 2],  # Red
-                   [161, 166, 168], # Gray
                    [255, 255, 255],
                   ])
 
@@ -39,7 +38,7 @@ def colorize(img_path, mask_path):
 
 
 def color_comp_main(imgsrc, msksrc, dst):
-    imglist = sorted(glob.glob(os.path.join(imgsrc, '*.jpg')))
+    imglist = sorted(glob.glob(os.path.join(imgsrc, '*.png')))
     msklist = sorted(glob.glob(os.path.join(msksrc, '*.png')))
     print('imglist: {}'.format(len(imglist)))
     print('msklist: {}'.format(len(msklist)))
