@@ -79,7 +79,7 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
                                                            averaged_jacc, (time.time() - start) / 60.0))
 
         if (epoch + 1) % 2 == 0:  # save checkpoint frequently
-            torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}.pth'.format(epoch + 1, args.resolution))
+            torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}_upLearned.pth'.format(epoch + 1, args.resolution))
 
 
 def get_args():
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     val_set = data_loader(img_vals, transform=data_transforms['val'], APS=args.APS, isTrain=False)
     val_loader = DataLoader(val_set, batch_size=args.batchsize, shuffle=False, num_workers=args.num_workers)
 
-    net = UNet(n_channels=3, n_classes=args.n_classes)
+    net = UNet(n_channels=3, n_classes=args.n_classes, bilinear=False)
 
     if args.gpu:
         net.cuda()
