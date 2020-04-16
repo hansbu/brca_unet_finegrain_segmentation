@@ -79,7 +79,7 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
                                                            averaged_jacc, (time.time() - start) / 60.0))
 
         if (epoch + 1) % 2 == 0:  # save checkpoint frequently
-            torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}.pth'.format(epoch + 1, args.resolution))
+            torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}_upLearned.pth'.format(epoch + 1, args.resolution))
 
 
 def get_args():
@@ -115,7 +115,7 @@ def log_codes():
         print(c[:-1])
 
 
-def get_data_transforms():
+def get_data_transforms(mean, std):
     out = {
         'train': transforms.Compose([  # 2 steps of data augmentation for training
             transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.1),
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     mean = [0.7238, 0.5716, 0.6779]  # for brca
     std = [0.1120, 0.1459, 0.1089]
 
-    data_transforms = get_data_transforms()
+    data_transforms = get_data_transforms(mean, std)
 
     print('================================Start loading data!')
     img_trains, img_vals, _ = load_imgs_files(data_path='data', limit=args.N_limit, resolution=args.resolution)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     val_set = data_loader(img_vals, transform=data_transforms['val'], APS=args.APS, isTrain=False)
     val_loader = DataLoader(val_set, batch_size=args.batchsize, shuffle=False, num_workers=args.num_workers)
 
-    net = UNet(n_channels=3, n_classes=args.n_classes)
+    net = UNet(n_channels=3, n_classes=args.n_classes, bilinear=False)
 
     if args.gpu:
         net.cuda()
