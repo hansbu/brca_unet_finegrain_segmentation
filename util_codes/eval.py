@@ -13,9 +13,11 @@ def eval_net(net, no_class, dataset, is_save=False):
     tot = np.zeros(no_class)
     tot_jac = np.zeros(no_class)
     tot_loss = 0
+    len_data = 1
 
     for i, data in enumerate(dataset):
         imgs, true_masks = data
+        len_data += 1
 
         imgs = Variable(imgs.to(device))
         true_masks = Variable(true_masks.type(torch.LongTensor).to(device))
@@ -29,4 +31,4 @@ def eval_net(net, no_class, dataset, is_save=False):
         tot += dice_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), no_class)      # tot is a numpy array
         tot_jac += jaccard_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), no_class)      # tot is a numpy array
 
-    return tot_loss/(i + 1), tot / (i + 1), sum(tot) / len(tot) / (i + 1), tot_jac / (i + 1), sum(tot_jac) / len(tot_jac) / (i + 1)
+    return tot_loss/len_data, tot / len_data, sum(tot) / len(tot) / len_data, tot_jac / len_data, sum(tot_jac) / len(tot_jac) / len_data
