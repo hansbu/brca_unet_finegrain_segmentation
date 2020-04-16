@@ -83,7 +83,7 @@ class data_loader(Dataset):
         self.imgs = imgs
         self.transform = transform
         self.APS = APS
-        self.randints = [i for i in range(0, self.imgs[0].shape[0] - APS + 1, 10)]
+        self.randints = [i for i in range(0, self.imgs[0].shape[0] - APS, 50)]
         self.len_rand = len(self.randints)
         self.isTrain = isTrain
         if not self.isTrain:
