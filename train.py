@@ -72,7 +72,7 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
                                                                   (time.time() - start) / 60.0))
 
         start = time.time()
-        if (epoch + 1) % 10 == 0:  # perform evaluation
+        if (epoch + 1) % args.eval_freq == 0:  # perform evaluation
             val_loss, val_dice, averaged_dice, val_jacc, averaged_jacc = eval_net(net, args.n_classes, val_loader)
             print(
                 'Validation Epoch: {} \t Val_Loss: {:.4f} \t Dice: {} \t Averaged Dice: {:.4f} \t Jacc: {} \t Averaged '
@@ -97,6 +97,7 @@ def get_args():
     parser.add_option('--APS', default=224, type=int, help='patch size of original input')
     parser.add_option('--n_classes', default=2, type=int, help='number of classes')
     parser.add_option('--resolution', default=10, type=int, help='resolution of training data')
+    parser.add_option('--eval_freq', default=10, type=int, help='run evaluation frequency')
 
     (options, args) = parser.parse_args()
     return options

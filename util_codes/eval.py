@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
 from torch.autograd import Variable
+from .utils import *
 
 def eval_net(net, no_class, dataset, is_save=False):
     """Evaluation without the densecrf with the dice coefficient"""
