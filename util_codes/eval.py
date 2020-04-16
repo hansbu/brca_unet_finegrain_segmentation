@@ -2,7 +2,6 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
-from utils import *
 
 
 def eval_net(net, no_class, dataset, is_save=False):
