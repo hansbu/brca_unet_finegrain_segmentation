@@ -9,52 +9,59 @@ import os
 import cv2
 import random
 
+random.seed(12345)
+
+
+def load_imgs_paths(img_fns, train_mask_path, limit):
+    out = []
+    paths = []
+    for c, fn in enumerate(img_fns):
+        mask_fn = mask_path_from_img_path(train_mask_path, fn)
+        img_merged = load_img_mask(fn, mask_fn)
+        out.append(img_merged)
+        paths.append(mask_fn.split('/')[-1])
+        if c % 10 == 0: print('Loading data: {}/{}'.format(c, len(img_fns)))
+        if c > limit: break
+    return out, paths
+
+
+def mask_path_from_img_path(mask_fol, img_path):
+    return os.path.join(mask_fol, img_path.split('/')[-1].split('.png')[0] + '_mask.png')
+
+
+def load_img_mask(img_path, mask_path):
+    img = cv2.imread(img_path)
+    mask = cv2.imread(mask_path, 0)
+
+    mask = np.expand_dims(mask, axis=2)
+    img_merged = np.concatenate((img, mask), axis=2)
+    return img_merged
+
 
 def load_imgs_files(data_path='data', limit=1000000, isTrain=True, resolution=10):
-    train_imgs = []
-    val_imgs = []
+    train_imgs, val_imgs = [], []
 
     train_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X'.format(resolution))
     train_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X_mask'.format(resolution))
     train_img_fns = [os.path.join(train_img_path, f) for f in os.listdir(train_img_path) if len(f) > 3]
 
-    val_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X_val'.format(resolution))
-    val_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X_mask_val'.format(resolution))
-    val_img_fns = [os.path.join(val_img_path, f) for f in os.listdir(val_img_path) if len(f) > 3]
+    test_img_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X_val'.format(resolution))
+    test_mask_path = os.path.join(data_path, 'TCGA_BRCA_finegrain_patches_{}X_mask_val'.format(resolution))
+    test_img_fns = [os.path.join(test_img_path, f) for f in os.listdir(test_img_path) if len(f) > 3]
 
+    train_img_fns.sort()
     random.shuffle(train_img_fns)
-    val_img_fns.sort()
-    val_paths = []
+    test_img_fns.sort()
 
-    c = 0
     if isTrain:
-        for fn in train_img_fns:
-            mask_fn = os.path.join(train_mask_path, fn.split('/')[-1].split('.png')[0] + '_mask.png')
-            img = cv2.imread(fn)
-            mask = cv2.imread(mask_fn, 0)
+        val_img_fns = train_img_fns[:50]
+        train_img_fns = train_img_fns[50:]
+        train_imgs, _ = load_imgs_paths(train_img_fns, train_mask_path, limit)
+        val_imgs, _ = load_imgs_paths(val_img_fns, train_mask_path, limit)
 
-            mask = np.expand_dims(mask, axis=2)
-            img_merged = np.concatenate((img, mask), axis=2)
-            train_imgs.append(img_merged)
-            c += 1
-            if c % 10 == 0: print('Loading training data: {}/{}'.format(c, len(train_img_fns)))
-            if c > limit: break
+    test_imgs, test_paths = load_imgs_paths(test_img_fns, test_mask_path, limit)
 
-    c = 0
-    for fn in val_img_fns:
-        mask_fn = os.path.join(val_mask_path, fn.split('/')[-1].split('.png')[0] + '_mask.png')
-        img = cv2.imread(fn)
-        mask = cv2.imread(mask_fn, 0)
-
-        mask = np.expand_dims(mask, axis=2)
-        img_merged = np.concatenate((img, mask), axis=2)
-        val_imgs.append(img_merged)
-        val_paths.append(mask_fn.split('/')[-1])
-        c += 1
-        if c % 10 == 0: print('Loading val data: {}/{}'.format(c, len(val_img_fns)))
-        if c > limit: break
-
-    return train_imgs, val_imgs, val_paths
+    return train_imgs, val_imgs, test_imgs, test_paths
 
 
 def get_augment(img, APS):

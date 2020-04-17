@@ -52,7 +52,7 @@ if __name__ == '__main__':
     data_transforms = get_data_transforms()
 
     print('================================Start loading data!')
-    _, img_vals, val_paths = load_imgs_files(data_path='data', limit=args.N_limit, isTrain=False, resolution=resolution)
+    _, _, img_vals, val_paths = load_imgs_files(data_path='data', limit=args.N_limit, isTrain=False, resolution=resolution)
 
     criterion = nn.CrossEntropyLoss()
     device = torch.device("cuda:0")
