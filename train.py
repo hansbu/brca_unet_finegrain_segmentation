@@ -69,7 +69,7 @@ def train_net(net, train_loader=None, val_loader=None, test_loader=None, args=No
             train_jacc += jaccard_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), args.n_classes)
 
         len_data = len(train_loader)
-        print_results('Training', epoch, epoch_loss/len_data, sum(train_dice) / len(train_dice) / len_data,
+        print_results('Training', epoch, epoch_loss/len_data, train_dice / len_data, sum(train_dice) / len(train_dice) / len_data,
                       train_jacc / len_data, sum(train_jacc) / len(train_jacc) / len_data, (time.time() - start) / 60.0)
 
         start = time.time()
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     print('================================Start loading data!')
     img_trains, img_vals, img_tests, _ = load_imgs_files(data_path='data', limit=args.N_limit,
                                                          resolution=args.resolution)
-    print('================================Done loading data, train/val: ', len(img_trains), len(img_vals))
+    print('================================Done loading data, train/val/test: ', len(img_trains), len(img_vals), len(img_tests))
 
     train_set = data_loader(img_trains, transform=data_transforms['train'], APS=args.APS, isTrain=True)
     train_loader = DataLoader(train_set, batch_size=args.batchsize, shuffle=True, num_workers=args.num_workers)

@@ -91,7 +91,7 @@ class data_loader(Dataset):
         self.imgs = imgs
         self.transform = transform
         self.APS = APS
-        self.randints = [i for i in range(0, self.imgs[0].shape[0] - APS, 50)]
+        self.randints = [i for i in range(0, self.imgs[0].shape[0] - APS, 25)]
         self.len_rand = len(self.randints)
         self.isTrain = isTrain
         if not self.isTrain:
@@ -109,11 +109,10 @@ class data_loader(Dataset):
             data = data[offset:offset + self.APS, offset:offset + self.APS, :]  # get the central patch
 
         # mirror and flip
-        if self.isTrain:
-            if np.random.rand(1)[0] < 0.5 and self.isTrain:
-                data = np.flip(data, 0);        # flip on axis 0, vertiaclly flip
-            if np.random.rand(1)[0] < 0.5 and self.isTrain:
-                data = np.flip(data, 1);       # flip on axis 1, mirror
+        if np.random.rand(1)[0] < 0.5 and self.isTrain:
+            data = np.flip(data, 0)         # flip on axis 0, vertiaclly flip
+        if np.random.rand(1)[0] < 0.5 and self.isTrain:
+            data = np.flip(data, 1)         # flip on axis 1, mirror
 
         img, mask = data[:, :, :3], data[:, :, 3]
         img = Image.fromarray(img.astype(np.uint8), 'RGB')
