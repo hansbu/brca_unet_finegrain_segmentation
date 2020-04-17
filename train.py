@@ -69,7 +69,7 @@ def train_net(net, train_loader=None, val_loader=None, test_loader=None, args=No
             train_jacc += jaccard_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), args.n_classes)
 
         len_data = len(train_loader)
-        print_results('Training', epoch, epoch_loss/len_data, train_dice / len_data, sum(train_dice) / len(train_dice) / len_data,
+        print_results('Training', epoch + 1, epoch_loss/len_data, train_dice / len_data, sum(train_dice) / len(train_dice) / len_data,
                       train_jacc / len_data, sum(train_jacc) / len(train_jacc) / len_data, (time.time() - start) / 60.0)
 
         start = time.time()
