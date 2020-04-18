@@ -4,6 +4,7 @@ import cv2, os, glob
 import numpy as np
 
 colors = np.array([[161, 166, 168], # Gray
+                   [255, 255, 0],   # yellow
                    [232, 144, 37],  # Orange
                    [206, 29, 2],  # Red
                    [255, 255, 255],
@@ -32,8 +33,7 @@ def colorize(img_path, mask_path):
 
     print(img_path, mask_path, np.unique(mask))
     mask = color_mask(mask)
-
-    img = np.add(img*0.6, mask*0.4)
+    img = np.add(img*0.8, mask*0.2)
     img = cv2.convertScaleAbs(img)
     return img
 
