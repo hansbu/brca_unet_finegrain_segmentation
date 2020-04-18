@@ -13,8 +13,13 @@ from unet import UNet
 from util_codes.utils import *
 
 
-def train_net(net, train_loader=None, val_loader=None, args=None):
+def print_results(type, epoch, loss, dice, averaged_dice, jacc, averaged_jacc, elapsed_time):
+    print('{} Epoch: {} \t Loss: {:.3f} \t Dice: {} \t Averaged Dice: {:.3f} \t Jacc: {} \t Averaged '
+          'Jacc: {:.3f} \t Time: {:.2f} mins'.format(type, epoch, loss, dice, averaged_dice, jacc,
+                                                     averaged_jacc, elapsed_time))
 
+
+def train_net(net, train_loader=None, val_loader=None, test_loader=None, args=None):
     dir_checkpoint = 'checkpoints/'
     if not os.path.exists(dir_checkpoint):
         os.mkdir(dir_checkpoint)
@@ -63,31 +68,30 @@ def train_net(net, train_loader=None, val_loader=None, args=None):
             train_dice += dice_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), args.n_classes)
             train_jacc += jaccard_coeff(masks_pred.data.cpu().numpy(), true_masks.data.cpu().numpy(), args.n_classes)
 
-        print('Train Epoch: {} \t Train_Loss: {:.4f} \t Dice: {} \t Averaged Dice: {:.4f} \t Jacc: {} \t '
-              'Averaged Jacc: {:.4f} \t Time: {:.2f} mins'.format(epoch, epoch_loss / (i + 1),
-                                                                  train_dice / (i + 1),
-                                                                  sum(train_dice) / len(train_dice) / (i + 1),
-                                                                  train_jacc / (i + 1),
-                                                                  sum(train_jacc) / len(train_jacc) / (i + 1),
-                                                                  (time.time() - start) / 60.0))
+        len_data = len(train_loader)
+        print_results('Training', epoch + 1, epoch_loss/len_data, train_dice / len_data, sum(train_dice) / len(train_dice) / len_data,
+                      train_jacc / len_data, sum(train_jacc) / len(train_jacc) / len_data, (time.time() - start) / 60.0)
 
         start = time.time()
-        if (epoch + 1) % 10 == 0:  # perform evaluation
+        if (epoch + 1) % args.eval_freq == 0:  # perform evaluation
             val_loss, val_dice, averaged_dice, val_jacc, averaged_jacc = eval_net(net, args.n_classes, val_loader)
-            print(
-                'Validation Epoch: {} \t Val_Loss: {:.4f} \t Dice: {} \t Averaged Dice: {:.4f} \t Jacc: {} \t Averaged '
-                'Jacc: {:.4f} \t Time: {:.2f} mins'.format(epoch + 1, val_loss, val_dice, averaged_dice, val_jacc,
-                                                           averaged_jacc, (time.time() - start) / 60.0))
+            elapsed_time = (time.time() - start) / 60.0
+            print_results('Validation', epoch + 1, val_loss, val_dice, averaged_dice, val_jacc, averaged_jacc, elapsed_time)
+
+            start = time.time()
+            elapsed_time = (time.time() - start) / 60.0
+            test_loss, test_dice, test_averaged_dice, test_jacc, test_averaged_jacc = eval_net(net, args.n_classes, test_loader)
+            print_results('Testing', epoch + 1, test_loss, test_dice, test_averaged_dice, test_jacc, test_averaged_jacc, elapsed_time)
 
             if (epoch + 1) > 50 and best_dice < averaged_dice:
                 best_dice = averaged_dice
-                torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}_APS{}_upLearned_best_{}.pth'.format(
-                                                                epoch + 1, args.resolution, args.APS, best_dice))
+                torch.save(net.state_dict(), dir_checkpoint + 'CP{}_resolution{}_APS{}_Test_upLearned_best_{:.4f}.pth'.format(
+                               epoch + 1, args.resolution, args.APS, best_dice))
 
 
 def get_args():
     parser = OptionParser()
-    parser.add_option('-e', '--epochs', dest='epochs', default=1000, type='int', help='number of epochs')
+    parser.add_option('-e', '--epochs', dest='epochs', default=2000, type='int', help='number of epochs')
     parser.add_option('-b', '--batch-size', dest='batchsize', default=32, type='int', help='batch size')
     parser.add_option('-l', '--lr', '--learning-rate', dest='lr', default=0.01, type='float', help='learning rate')
     parser.add_option('-g', '--gpu', action='store_true', dest='gpu', default=True, help='use cuda')
@@ -97,6 +101,7 @@ def get_args():
     parser.add_option('--APS', default=224, type=int, help='patch size of original input')
     parser.add_option('--n_classes', default=2, type=int, help='number of classes')
     parser.add_option('--resolution', default=10, type=int, help='resolution of training data')
+    parser.add_option('--eval_freq', default=10, type=int, help='run evaluation frequency')
 
     (options, args) = parser.parse_args()
     return options
@@ -141,8 +146,9 @@ if __name__ == '__main__':
     data_transforms = get_data_transforms()
 
     print('================================Start loading data!')
-    img_trains, img_vals, _ = load_imgs_files(data_path='data', limit=args.N_limit, resolution=args.resolution)
-    print('================================Done loading data, train/val: ', len(img_trains), len(img_vals))
+    img_trains, img_vals, img_tests, _ = load_imgs_files(data_path='data', limit=args.N_limit,
+                                                         resolution=args.resolution)
+    print('================================Done loading data, train/val/test: ', len(img_trains), len(img_vals), len(img_tests))
 
     train_set = data_loader(img_trains, transform=data_transforms['train'], APS=args.APS, isTrain=True)
     train_loader = DataLoader(train_set, batch_size=args.batchsize, shuffle=True, num_workers=args.num_workers)
@@ -151,6 +157,10 @@ if __name__ == '__main__':
     print('Number of validation patches extracted: ', len(val_set))
     val_loader = DataLoader(val_set, batch_size=args.batchsize, shuffle=False, num_workers=args.num_workers)
 
+    test_set = data_loader(img_tests, transform=data_transforms['val'], APS=args.APS, isTrain=False)
+    print('Number of test patches extracted: ', len(test_set))
+    test_loader = DataLoader(test_set, batch_size=args.batchsize, shuffle=False, num_workers=args.num_workers)
+
     net = UNet(n_channels=3, n_classes=args.n_classes, bilinear=False)
 
     if args.gpu:
@@ -158,7 +168,7 @@ if __name__ == '__main__':
         net = torch.nn.DataParallel(net, device_ids=[0, 1])
         cudnn.benchmark = True  # faster convolutions, but more memory
     try:
-        train_net(net=net, train_loader=train_loader, val_loader=val_loader, args=args)
+        train_net(net=net, train_loader=train_loader, val_loader=val_loader, test_loader=test_loader, args=args)
 
     except KeyboardInterrupt:
         torch.save(net.state_dict(), 'INTERRUPTED_res{}.pth'.format(args.resolution))
